@@ -3,7 +3,7 @@ sys.path.append('/Users/kb/bin/opencv-3.1.0/build/lib/')
 
 import cv2
 import numpy as np
-import Math # For Guassian calculation
+# import Math # For Guassian calculation
 
 
 # Executes a cross_correlation on a 2D grayscale array
@@ -200,8 +200,8 @@ def gaussian_blur_kernel_2d(sigma, width, height):
     # Populate the kernel
     for i in range(-int(numRows/2), int(numRows/2)+1):
         for j in range(-int(numCols/2), int(numCols/2)+1):
-            lhs = 1 / (2*math.pi*(sigma*sigma))
-            rhs = math.e ** -((i**i + j**j)/(2 * (sigma*sigma)))
+            lhs = 1 / (2*np.pi*(sigma*sigma))
+            rhs = np.e ** -((i**i + j**j)/(2 * (sigma*sigma)))
             kernel[i + int(numRows/2)][j + int(numCols/2)] = lhs * rhs
 
     # Normalize the matrix
