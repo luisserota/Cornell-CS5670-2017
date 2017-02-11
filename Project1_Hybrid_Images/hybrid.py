@@ -23,7 +23,7 @@ def cross_correlation_2d(img, kernel):
         height and the number of color channels)
     '''
     # TODO-BLOCK-BEGIN
-    raise Exception("TODO in hybrid.py not implemented")
+    #raise Exception("TODO in hybrid.py not implemented")
     # TODO-BLOCK-END
 
 def convolve_2d(img, kernel):
