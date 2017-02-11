@@ -5,8 +5,58 @@ import cv2
 import numpy as np
 
 
-def perform_cross_correlation_(ary, kernl):
-	pass
+# Executes a cross_correlation on a 2D array
+def perform_cross_correlation_grayscale(img, kernel):
+
+	# Determine dimensions
+	kernelR = len(kernel)
+	kernelC = len(kernel[0])
+	imgR = len(img)
+	imgC = len(img[0])
+
+	# Do pre-processing, add 0's on the perimeter to account for edges
+	# Add width
+	w = kernelC
+	h = kernelR
+	while w > 1:
+		img = np.insert(img, 0, 0, axis=1) # Add column of 0's to the left
+		img = np.insert(img, len(img[0]), 0, axis=1) # Add column of 0's to the right
+		w = w - 2
+	# Add Height
+	while h > 1:
+		img = np.insert(img, 0, 0, axis=0) # Add row of 0's on top
+		img = npm.insert(img, len(img), 0, axis=0) # Add row of 0's on bototm
+		h = h - 2
+
+	# New image
+	newImg = np.copy(img)
+
+	# Perform correlation on pre-processed 2D aray
+	# Itereate over 2D array within the boundaries before the added 0's
+	for i in range(0 + int(kernelR/2), len(img) - int(kernelR/2)):
+		for j in range(0 + int(kernelC/2), len(img) - int(kernelC/2)):
+
+			# Apply kernel to the current pixel
+			sum = 0
+			for ki in range(0, kernelR):
+				for kj in range(0, kernelC):
+					sum += kernel[ki][kj] * img[i + ki - int(kernelR/2)][j + kj - int(kernelC/2)]
+
+			newImg[i][j] = sum
+
+	# Remove added 0 rows and columns
+	w = kernelC
+	h = kernelR
+	while w > 1:
+		newImg = np.delete(newImg, 0, 1) # remove column from left
+		newImg = np.delete(newImg, len(newImg[0])-1, 1)# remove column from right
+		w = w - 2
+	while h > 1:
+		newImg = np.delete(newImg, 0, 0) # remove row from top
+		newImg = np.delete(newImg, len(newImg)-1, 0)# remove row from bottom
+		h = h - 2
+
+	return newImg
 
 def cross_correlation_2d(img, kernel):
     '''Given a kernel of arbitrary m x n dimensions, with both m and n being
@@ -26,10 +76,23 @@ def cross_correlation_2d(img, kernel):
         Return an image of the same dimensions as the input image (same width,
         height and the number of color channels)
     '''
-    
+
     # Determine if Grayscale or RGB
-    
-    
+    imageDimensions = len(img)
+
+	# GrayScale image
+	if imageDimensions == 1:
+		return perform_cross_correlation_grayscale(img, kernel)
+
+	# RGB image
+	elif imageDimensions == 3:
+		newImg = []
+		newImg.append(img[0], kernel)
+		newImg.append(img[1], kernel)
+		newImg.append(img[2], kernel)
+		return newImg
+
+
     # TODO-BLOCK-BEGIN
     #raise Exception("TODO in hybrid.py not implemented")
     # TODO-BLOCK-END
@@ -121,5 +184,3 @@ def create_hybrid_image(img1, img2, sigma1, size1, high_low1, sigma2, size2,
     img2 *= 2 * mixin_ratio
     hybrid_img = (img1 + img2)
     return (hybrid_img * 255).clip(0, 255).astype(np.uint8)
-
-
