@@ -4,6 +4,10 @@ sys.path.append('/Users/kb/bin/opencv-3.1.0/build/lib/')
 import cv2
 import numpy as np
 
+
+def perform_cross_correlation_(ary, kernl):
+	pass
+
 def cross_correlation_2d(img, kernel):
     '''Given a kernel of arbitrary m x n dimensions, with both m and n being
     odd, compute the cross correlation of the given image with the given
@@ -22,6 +26,10 @@ def cross_correlation_2d(img, kernel):
         Return an image of the same dimensions as the input image (same width,
         height and the number of color channels)
     '''
+    
+    # Determine if Grayscale or RGB
+    
+    
     # TODO-BLOCK-BEGIN
     #raise Exception("TODO in hybrid.py not implemented")
     # TODO-BLOCK-END
