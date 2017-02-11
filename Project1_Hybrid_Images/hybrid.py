@@ -3,6 +3,7 @@ sys.path.append('/Users/kb/bin/opencv-3.1.0/build/lib/')
 
 import cv2
 import numpy as np
+import Math # For Guassian calculation
 
 
 # Executes a cross_correlation on a 2D grayscale array
@@ -135,7 +136,7 @@ def cross_correlation_2d(img, kernel):
     imageDimensions = len(img)
 
     # GrayScale image
-    if imageDimensions == 1:
+    if imageDimensions == 2:
         return perform_cross_correlation_grayscale(img, kernel)
 
     # RGB image
@@ -157,9 +158,21 @@ def convolve_2d(img, kernel):
         Return an image of the same dimensions as the input image (same width,
         height and the number of color channels)
     '''
-    # TODO-BLOCK-BEGIN
-    raise Exception("TODO in hybrid.py not implemented")
-    # TODO-BLOCK-END
+    # Flip the kernel horizontally and vertically
+    kernel = np.flipud(np.fliplr(kernel))
+
+    # Determine if Grayscale or RGB
+    imageDimensions = len(img)
+
+    # GrayScale image
+    if imageDimensions == 2:
+        return perform_cross_correlation_grayscale(img, kernel)
+
+    # RGB image
+    elif imageDimensions == 3:
+        return perform_cross_correlation_RGB(img, kernel)
+
+    # raise Exception("TODO in hybrid.py not implemented")
 
 def gaussian_blur_kernel_2d(sigma, width, height):
     '''Return a Gaussian blur kernel of the given dimensions and with the given
@@ -176,9 +189,27 @@ def gaussian_blur_kernel_2d(sigma, width, height):
         Return a kernel of dimensions width x height such that convolving it
         with an image results in a Gaussian-blurred image.
     '''
-    # TODO-BLOCK-BEGIN
-    raise Exception("TODO in hybrid.py not implemented")
-    # TODO-BLOCK-END
+
+    # In a gaussian kernel, width means number of rows, and vice versa for cols
+    numRows = width
+    numCols = height
+
+    # Initialize empty kernely
+    kernel = np.zeros((numRows, numCols))
+
+    # Populate the kernel
+    for i in range(-int(numRows/2), int(numRows/2)+1):
+        for j in range(-int(numCols/2), int(numCols/2)+1):
+            lhs = 1 / (2*math.pi*(sigma*sigma))
+            rhs = math.e ** -((i**i + j**j)/(2 * (sigma*sigma)))
+            kernel[i + int(numRows/2)][j + int(numCols/2)] = lhs * rhs
+
+    # Normalize the matrix
+    kernel = kernel/np.sum(kernel)
+
+    return kernel
+
+    #raise Exception("TODO in hybrid.py not implemented")
 
 def low_pass(img, sigma, size):
     '''Filter the image as if its filtered with a low pass filter of the given
@@ -189,9 +220,21 @@ def low_pass(img, sigma, size):
         Return an image of the same dimensions as the input image (same width,
         height and the number of color channels)
     '''
-    # TODO-BLOCK-BEGIN
-    raise Exception("TODO in hybrid.py not implemented")
-    # TODO-BLOCK-END
+
+    # low_pass = gaussian blur without convolving
+
+    # Determine if Grayscale or RGB
+    imageDimensions = len(img)
+
+    # GrayScale image
+    if imageDimensions == 2:
+        return perform_cross_correlation_grayscale(img, gaussian_blur_kernel_2d(sigma, size, size))
+
+    # RGB image
+    elif imageDimensions == 3:
+        return perform_cross_correlation_RGB(img, gaussian_blur_kernel_2d(sigma, size, size))
+
+    # raise Exception("TODO in hybrid.py not implemented")
 
 def high_pass(img, sigma, size):
     '''Filter the image as if its filtered with a high pass filter of the given
@@ -202,9 +245,11 @@ def high_pass(img, sigma, size):
         Return an image of the same dimensions as the input image (same width,
         height and the number of color channels)
     '''
-    # TODO-BLOCK-BEGIN
-    raise Exception("TODO in hybrid.py not implemented")
-    # TODO-BLOCK-END
+
+    # Low pass = original image - low pass image
+    return np.subtract(img, low_pass(img, sigma, size))
+
+    # raise Exception("TODO in hybrid.py not implemented")
 
 def create_hybrid_image(img1, img2, sigma1, size1, high_low1, sigma2, size2,
         high_low2, mixin_ratio):
