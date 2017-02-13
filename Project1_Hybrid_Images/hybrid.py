@@ -42,7 +42,7 @@ def perform_cross_correlation_grayscale(img, kernel):
             for ki in range(0, kernelR):
                 for kj in range(0, kernelC):
                     # sum += kernel[ki][kj] * img[i + ki - int(kernelR/2)][j + kj - int(kernelC/2)]
-                    sum += kernel[ki][kj] * img[i + ki - int(kernelR/2)][j + kj - int(kernelC/2)]
+                    sum += kernel[ki][kj]
             newImg[i][j] = sum
 
     # Remove added 0 rows and columns
