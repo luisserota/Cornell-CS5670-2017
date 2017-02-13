@@ -132,16 +132,13 @@ def cross_correlation_2d(img, kernel):
         height and the number of color channels)
     '''
 
-    # Determine if Grayscale or RGB
-    imageDimensions = len(img)
-
-    # GrayScale image
-    if imageDimensions == 2:
-        return perform_cross_correlation_grayscale(img, kernel)
-
     # RGB image
-    elif imageDimensions == 3:
-        return perform_cross_correlation_RGB(img, kernel)
+    if image.shape == 3:
+        return perform_cross_correlation_RBG(img, kernel)
+
+    # GrayScale
+    else:
+        return perform_cross_correlation_grayscale(img, kernel)
 
     #raise Exception("TODO in hybrid.py not implemented")
 
@@ -161,16 +158,13 @@ def convolve_2d(img, kernel):
     # Flip the kernel horizontally and vertically
     kernel = np.flipud(np.fliplr(kernel))
 
-    # Determine if Grayscale or RGB
-    imageDimensions = len(img)
-
-    # GrayScale image
-    if imageDimensions == 2:
-        return perform_cross_correlation_grayscale(img, kernel)
-
     # RGB image
-    elif imageDimensions == 3:
+    if img.shape == 3:
         return perform_cross_correlation_RGB(img, kernel)
+
+    # Grayscale image
+    else:
+        return perform_cross_correlation_grayscaleimg, kernel)
 
     # raise Exception("TODO in hybrid.py not implemented")
 
@@ -223,16 +217,13 @@ def low_pass(img, sigma, size):
 
     # low_pass = gaussian blur without convolving
 
-    # Determine if Grayscale or RGB
-    imageDimensions = len(img)
-
-    # GrayScale image
-    if imageDimensions == 2:
-        return perform_cross_correlation_grayscale(img, gaussian_blur_kernel_2d(sigma, size, size))
-
     # RGB image
-    elif imageDimensions == 3:
+    if imageDimensions == 3:
         return perform_cross_correlation_RGB(img, gaussian_blur_kernel_2d(sigma, size, size))
+
+    # Grayscale image
+    else:
+        return perform_cross_correlation_grayscale(img, gaussian_blur_kernel_2d(sigma, size, size))
 
     # raise Exception("TODO in hybrid.py not implemented")
 
