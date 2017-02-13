@@ -15,7 +15,8 @@ def perform_cross_correlation_grayscale(img, kernel):
     imgR = len(img)
     imgC = len(img[0])
 
-    print(img)
+    print "old image"
+    print img
 
     # Do pre-processing, add 0's on the perimeter to account for edges
     # Add width
@@ -34,7 +35,8 @@ def perform_cross_correlation_grayscale(img, kernel):
     # New image
     newImg = np.copy(img)
 
-    print(newImg)
+    print "new image"
+    print newImg
 
     # Perform correlation on pre-processed 2D aray
     # Itereate over 2D array within the boundaries before the added 0's
