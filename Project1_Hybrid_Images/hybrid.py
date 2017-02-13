@@ -133,7 +133,7 @@ def cross_correlation_2d(img, kernel):
     '''
 
     # RGB image
-    if image.shape == 3:
+    if img.shape == 3:
         return perform_cross_correlation_RBG(img, kernel)
 
     # GrayScale
