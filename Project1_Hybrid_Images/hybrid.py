@@ -164,7 +164,7 @@ def convolve_2d(img, kernel):
 
     # Grayscale image
     else:
-        return perform_cross_correlation_grayscaleimg, kernel)
+        return perform_cross_correlation_grayscale(img, kernel)
 
     # raise Exception("TODO in hybrid.py not implemented")
 
@@ -218,7 +218,7 @@ def low_pass(img, sigma, size):
     # low_pass = gaussian blur without convolving
 
     # RGB image
-    if imageDimensions == 3:
+    if img.shape == 3:
         return perform_cross_correlation_RGB(img, gaussian_blur_kernel_2d(sigma, size, size))
 
     # Grayscale image
