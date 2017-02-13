@@ -26,7 +26,7 @@ def perform_cross_correlation_grayscale(img, kernel):
     # Add Height
     while h > 1:
         img = np.insert(img, 0, 0, axis=0) # Add row of 0's on top
-        img = npm.insert(img, len(img), 0, axis=0) # Add row of 0's on bototm
+        img = np.insert(img, len(img), 0, axis=0) # Add row of 0's on bototm
         h = h - 2
 
     # New image
@@ -78,7 +78,7 @@ def perform_cross_correlation_RGB(img, kernel):
     # Add Height
     while h > 1:
         img = np.insert(img, 0, 0, axis=0) # Add row of 0's on top
-        img = npm.insert(img, len(img), 0, axis=0) # Add row of 0's on bototm
+        img = np.insert(img, len(img), 0, axis=0) # Add row of 0's on bototm
         h = h - 2
 
     # Perform correlation on pre-processed 2D RGB array
