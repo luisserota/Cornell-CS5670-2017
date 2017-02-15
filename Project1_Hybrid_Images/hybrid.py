@@ -110,8 +110,8 @@ def perform_cross_correlation_RGB(img, kernel):
 
     # Perform correlation on pre-processed 2D RGB array
     # Itereate over 2D array within the boundaries before the added 0's
-    for i in range(0 + int(kernelR/2), len(img) - int(kernelR/2)):
-        for j in range(0 + int(kernelC/2), len(img) - int(kernelC/2)):
+    for i in range(int(kernelR/2), len(newImg) - int(kernelR/2)):
+        for j in range(int(kernelC/2), len(newImg[0]) - int(kernelC/2)):
 
             # Apply kernel to the current pixel
             sumOne = 0
@@ -119,9 +119,9 @@ def perform_cross_correlation_RGB(img, kernel):
             sumThree = 0
             for ki in range(0, kernelR):
                 for kj in range(0, kernelC):
-                    sumOne += kernel[ki][kj][0] * img[i + ki - int(kernelR/2)][j + kj - int(kernelC/2)][0]
-                    sumTwo += kernel[ki][kj][1] * img[i + ki - int(kernelR/2)][j + kj - int(kernelC/2)][1]
-                    sumThree += kernel[ki][kj][2] * img[i + ki - int(kernelR/2)][j + kj - int(kernelC/2)][2]
+                    sumOne += kernel[ki][kj][0] * newImg[i + ki - int(kernelR/2)][j + kj - int(kernelC/2)][0]
+                    sumTwo += kernel[ki][kj][1] * newImgimg[i + ki - int(kernelR/2)][j + kj - int(kernelC/2)][1]
+                    sumThree += kernel[ki][kj][2] * newIimg[i + ki - int(kernelR/2)][j + kj - int(kernelC/2)][2]
             newImg[i][j][0] = sumOne
             newImg[i][j][1] = sumTwo
             newImg[i][j][2] = sumThree
