@@ -223,10 +223,10 @@ def gaussian_blur_kernel_2d(sigma, width, height):
     kernel = np.zeros((numRows, numCols))
 
     # Populate the kernel
-    for i in range(-int(numRows/2), int(numRows/2)+1):
-        for j in range(-int(numCols/2), int(numCols/2)+1):
-            lhs = 1 / (2*np.pi*(sigma*sigma))
-            rhs = math.pow(np.e, -((math.pow(i,i) + math.pow(j,j))/(2 * (sigma*sigma))))
+    for i in range(-int(numRows/2), int(numRows/2) + 1):
+        for j in range(-int(numCols/2), int(numCols/2) + 1):
+            lhs = 1 / (2*np.pi*(math.pow(sigma,sigma)))
+            rhs = math.pow(np.e, -((math.pow(i,2) + math.pow(j,2))/(2 * (sigma*sigma))))
             kernel[i + int(numRows/2)][j + int(numCols/2)] = lhs * rhs
 
     # Normalize the matrix
@@ -248,13 +248,15 @@ def low_pass(img, sigma, size):
 
     # low_pass = gaussian blur without convolving
 
-    # RGB image
-    if img.shape == 3:
-        return perform_cross_correlation_RGB(img, gaussian_blur_kernel_2d(sigma, size, size))
+    return convolve_2d(img, gaussian_blur_kernel_2d(sigma, size, size))
 
-    # Grayscale image
-    else:
-        return perform_cross_correlation_grayscale(img, gaussian_blur_kernel_2d(sigma, size, size))
+    # # RGB image
+    # if len(img.shape) == 3:
+    #     return perform_cross_correlation_RGB(img, gaussian_blur_kernel_2d(sigma, size, size))
+    #
+    # # Grayscale image
+    # else:
+    #     return perform_cross_correlation_grayscale(img, gaussian_blur_kernel_2d(sigma, size, size))
 
     # raise Exception("TODO in hybrid.py not implemented")
 
