@@ -15,10 +15,11 @@ def perform_cross_correlation_grayscale(img, kernel):
     imgR = len(img)
     imgC = len(img[0])
 
-    # TRY PRINTING OUT THE KERNEL AND COMPARING
-
-    print "old image"
-    print img
+    # print "kernelRows: " + str(kernelR)
+    # print "kernelCols: " + str(kernelC)
+    #
+    # print "oldImageRows: " + str(imgR)
+    # print "oldIMageCols: " + str(imgC)
 
     # Do pre-processing, add 0's on the perimeter to account for edges
     # Add width
@@ -37,19 +38,31 @@ def perform_cross_correlation_grayscale(img, kernel):
     # New image
     newImg = np.copy(img)
 
-    print "new image"
-    print newImg
+    # print "newImageRows: " + str(len(newImg))
+    # print "newImageCols: " + str(len(newImg[len(newImg)-1]))
 
     # Perform correlation on pre-processed 2D aray
     # Itereate over 2D array within the boundaries before the added 0's
-    for i in range(0 + int(kernelR/2), len(img) - int(kernelR/2)):
-        for j in range(0 + int(kernelC/2), len(img) - int(kernelC/2)):
+
+    # print "kernelR: " + str(kernelR)
+    # print"kernelC: " + str(kernelC)
+    # print "i: " + str(int(kernelR/2)) + " - " + str(len(newImg) - int(kernelR/2))
+    # print "j: " + str(int(kernelC/2)) + " - " + str(len(newImg[0]) - int(kernelC/2))
+
+    print "kernel"
+    print kernel
+
+    print "newImage Before"
+    print newImg
+
+    for i in range(int(kernelR/2), len(newImg) - int(kernelR/2)):
+        for j in range(int(kernelC/2), len(newImg[0]) - int(kernelC/2)):
 
             # Apply kernel to the current pixel
             sum = 0
             for ki in range(0, kernelR):
                 for kj in range(0, kernelC):
-                    sum += kernel[ki][kj] * img[i + ki - int(kernelR/2)][j + kj - int(kernelC/2)]
+                    sum += kernel[ki][kj] * newImg[i + ki - int(kernelR/2)][j + kj - int(kernelC/2)]
                     # print(sum)
             newImg[i][j] = sum
 
@@ -64,6 +77,11 @@ def perform_cross_correlation_grayscale(img, kernel):
         newImg = np.delete(newImg, 0, 0) # remove row from top
         newImg = np.delete(newImg, len(newImg)-1, 0)# remove row from bottom
         h = h - 2
+
+    print "newImage after"
+    print newImg
+
+    print "\n\n"
 
     return newImg
 
