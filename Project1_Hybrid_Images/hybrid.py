@@ -1,3 +1,6 @@
+# Luis Serota - February 2016
+# Introduction to Computer Vision - Project 1
+
 import sys
 sys.path.append('/Users/kb/bin/opencv-3.1.0/build/lib/')
 
@@ -15,14 +18,6 @@ def perform_cross_correlation_grayscale(img, kernel):
     imgR = len(img)
     imgC = len(img[0])
 
-    # print "kernelRows: " + str(kernelR)
-    # print "kernelCols: " + str(kernelC)
-    #
-    # print "oldImageRows: " + str(imgR)
-    # print "oldIMageCols: " + str(imgC)
-
-    # oldImage = np.copy(img)
-
     # Do pre-processing, add 0's on the perimeter to account for edges
     # Add width
     w = kernelC
@@ -37,25 +32,8 @@ def perform_cross_correlation_grayscale(img, kernel):
         img = np.insert(img, len(img), 0, axis=0) # Add row of 0's on bottom
         h = h - 2
 
-    # New image
+    # New image to return
     newImg = np.copy(img)
-
-    # print "newImageRows: " + str(len(newImg))
-    # print "newImageCols: " + str(len(newImg[len(newImg)-1]))
-
-    # Perform correlation on pre-processed 2D aray
-    # Itereate over 2D array within the boundaries before the added 0's
-
-    # print "kernelR: " + str(kernelR)
-    # print"kernelC: " + str(kernelC)
-    # print "i: " + str(int(kernelR/2)) + " - " + str(len(newImg) - int(kernelR/2))
-    # print "j: " + str(int(kernelC/2)) + " - " + str(len(newImg[0]) - int(kernelC/2))
-
-    # print "kernel"
-    # print kernel
-
-    # print "newImage Before"
-    # print newImg
 
     for i in range(int(kernelR/2), len(newImg) - int(kernelR/2)):
         for j in range(int(kernelC/2), len(newImg[0]) - int(kernelC/2)):
@@ -65,7 +43,6 @@ def perform_cross_correlation_grayscale(img, kernel):
             for ki in range(0, kernelR):
                 for kj in range(0, kernelC):
                     sum += kernel[ki][kj] * img[i + ki - int(kernelR/2)][j + kj - int(kernelC/2)]
-                    # print(sum)
             newImg[i][j] = sum
 
     # Remove added 0 rows and columns
@@ -79,11 +56,6 @@ def perform_cross_correlation_grayscale(img, kernel):
         newImg = np.delete(newImg, 0, 0) # remove row from top
         newImg = np.delete(newImg, len(newImg)-1, 0)# remove row from bottom
         h = h - 2
-
-    # print "newImage after"
-    # print newImg
-
-    # print "\n\n"
 
     return newImg
 
@@ -104,15 +76,17 @@ def perform_cross_correlation_RGB(img, kernel):
         img = np.insert(img, 0, 0, axis=1) # Add column of 0's to the left
         img = np.insert(img, len(img[0]), 0, axis=1) # Add column of 0's to the right
         w = w - 2
+
     # Add Height
     while h > 1:
         img = np.insert(img, 0, 0, axis=0) # Add row of 0's on top
         img = np.insert(img, len(img), 0, axis=0) # Add row of 0's on bototm
         h = h - 2
 
+    # New image to return
     newImg = np.copy(img)
 
-    # Perform correlation on pre-processed 2D RGB array
+    # Perform correlation on pre-processed 3D RGB array
     # Itereate over 2D array within the boundaries before the added 0's
     for i in range(int(kernelR/2), len(newImg) - int(kernelR/2)):
         for j in range(int(kernelC/2), len(newImg[0]) - int(kernelC/2)):
@@ -171,7 +145,6 @@ def cross_correlation_2d(img, kernel):
     else:
         return perform_cross_correlation_grayscale(img, kernel)
 
-    #raise Exception("TODO in hybrid.py not implemented")
 
 def convolve_2d(img, kernel):
     '''Use cross_correlation_2d() to carry out a 2D convolution.
@@ -197,7 +170,6 @@ def convolve_2d(img, kernel):
     else:
         return perform_cross_correlation_grayscale(img, kernel)
 
-    # raise Exception("TODO in hybrid.py not implemented")
 
 def gaussian_blur_kernel_2d(sigma, width, height):
     '''Return a Gaussian blur kernel of the given dimensions and with the given
@@ -225,7 +197,7 @@ def gaussian_blur_kernel_2d(sigma, width, height):
     # Populate the kernel
     for i in range(-int(numRows/2), int(numRows/2) + 1):
         for j in range(-int(numCols/2), int(numCols/2) + 1):
-            lhs = 1 / (2*np.pi*(math.pow(sigma,sigma)))
+            lhs = 1 / (2*np.pi*(math.pow(sigma,2)))
             rhs = math.pow(np.e, -((math.pow(i,2) + math.pow(j,2))/(2 * (sigma*sigma))))
             kernel[i + int(numRows/2)][j + int(numCols/2)] = lhs * rhs
 
@@ -234,7 +206,6 @@ def gaussian_blur_kernel_2d(sigma, width, height):
 
     return kernel
 
-    #raise Exception("TODO in hybrid.py not implemented")
 
 def low_pass(img, sigma, size):
     '''Filter the image as if its filtered with a low pass filter of the given
@@ -246,19 +217,8 @@ def low_pass(img, sigma, size):
         height and the number of color channels)
     '''
 
-    # low_pass = gaussian blur without convolving
-
     return convolve_2d(img, gaussian_blur_kernel_2d(sigma, size, size))
 
-    # # RGB image
-    # if len(img.shape) == 3:
-    #     return perform_cross_correlation_RGB(img, gaussian_blur_kernel_2d(sigma, size, size))
-    #
-    # # Grayscale image
-    # else:
-    #     return perform_cross_correlation_grayscale(img, gaussian_blur_kernel_2d(sigma, size, size))
-
-    # raise Exception("TODO in hybrid.py not implemented")
 
 def high_pass(img, sigma, size):
     '''Filter the image as if its filtered with a high pass filter of the given
@@ -272,8 +232,6 @@ def high_pass(img, sigma, size):
 
     # Low pass = original image - low pass image
     return np.subtract(img, low_pass(img, sigma, size))
-
-    # raise Exception("TODO in hybrid.py not implemented")
 
 def create_hybrid_image(img1, img2, sigma1, size1, high_low1, sigma2, size2,
         high_low2, mixin_ratio):
