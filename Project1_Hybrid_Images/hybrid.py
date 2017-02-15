@@ -15,6 +15,8 @@ def perform_cross_correlation_grayscale(img, kernel):
     imgR = len(img)
     imgC = len(img[0])
 
+    # TRY PRINTING OUT THE KERNEL AND COMPARING
+
     print "old image"
     print img
 
