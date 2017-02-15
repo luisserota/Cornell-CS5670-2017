@@ -15,11 +15,13 @@ def perform_cross_correlation_grayscale(img, kernel):
     imgR = len(img)
     imgC = len(img[0])
 
-    print "kernelRows: " + str(kernelR)
-    print "kernelCols: " + str(kernelC)
+    # print "kernelRows: " + str(kernelR)
+    # print "kernelCols: " + str(kernelC)
+    #
+    # print "oldImageRows: " + str(imgR)
+    # print "oldIMageCols: " + str(imgC)
 
-    print "oldImageRows: " + str(imgR)
-    print "oldIMageCols: " + str(imgC)
+    # oldImage = np.copy(img)
 
     # Do pre-processing, add 0's on the perimeter to account for edges
     # Add width
@@ -38,8 +40,8 @@ def perform_cross_correlation_grayscale(img, kernel):
     # New image
     newImg = np.copy(img)
 
-    print "newImageRows: " + str(len(newImg))
-    print "newImageCols: " + str(len(newImg[len(newImg)-1]))
+    # print "newImageRows: " + str(len(newImg))
+    # print "newImageCols: " + str(len(newImg[len(newImg)-1]))
 
     # Perform correlation on pre-processed 2D aray
     # Itereate over 2D array within the boundaries before the added 0's
@@ -62,7 +64,7 @@ def perform_cross_correlation_grayscale(img, kernel):
             sum = 0
             for ki in range(0, kernelR):
                 for kj in range(0, kernelC):
-                    sum += kernel[ki][kj] * newImg[i + ki - int(kernelR/2)][j + kj - int(kernelC/2)]
+                    sum += kernel[ki][kj] * img[i + ki - int(kernelR/2)][j + kj - int(kernelC/2)]
                     # print(sum)
             newImg[i][j] = sum
 
@@ -81,7 +83,7 @@ def perform_cross_correlation_grayscale(img, kernel):
     # print "newImage after"
     # print newImg
 
-    print "\n\n"
+    # print "\n\n"
 
     return newImg
 
@@ -108,6 +110,8 @@ def perform_cross_correlation_RGB(img, kernel):
         img = np.insert(img, len(img), 0, axis=0) # Add row of 0's on bototm
         h = h - 2
 
+    newImg = np.copy(img)
+
     # Perform correlation on pre-processed 2D RGB array
     # Itereate over 2D array within the boundaries before the added 0's
     for i in range(int(kernelR/2), len(newImg) - int(kernelR/2)):
@@ -119,9 +123,9 @@ def perform_cross_correlation_RGB(img, kernel):
             sumThree = 0
             for ki in range(0, kernelR):
                 for kj in range(0, kernelC):
-                    sumOne += kernel[ki][kj][0] * newImg[i + ki - int(kernelR/2)][j + kj - int(kernelC/2)][0]
-                    sumTwo += kernel[ki][kj][1] * newImg[i + ki - int(kernelR/2)][j + kj - int(kernelC/2)][1]
-                    sumThree += kernel[ki][kj][2] * newI[i + ki - int(kernelR/2)][j + kj - int(kernelC/2)][2]
+                    sumOne += kernel[ki][kj] * img[i + ki - int(kernelR/2)][j + kj - int(kernelC/2)][0]
+                    sumTwo += kernel[ki][kj] * img[i + ki - int(kernelR/2)][j + kj - int(kernelC/2)][1]
+                    sumThree += kernel[ki][kj] * img[i + ki - int(kernelR/2)][j + kj - int(kernelC/2)][2]
             newImg[i][j][0] = sumOne
             newImg[i][j][1] = sumTwo
             newImg[i][j][2] = sumThree
@@ -160,8 +164,8 @@ def cross_correlation_2d(img, kernel):
     '''
 
     # RGB image
-    if img.shape == 3:
-        return perform_cross_correlation_RBG(img, kernel)
+    if len(img.shape) == 3:
+        return perform_cross_correlation_RGB(img, kernel)
 
     # GrayScale
     else:
@@ -186,7 +190,7 @@ def convolve_2d(img, kernel):
     kernel = np.flipud(np.fliplr(kernel))
 
     # RGB image
-    if img.shape == 3:
+    if len(img.shape) == 3:
         return perform_cross_correlation_RGB(img, kernel)
 
     # Grayscale image
@@ -215,7 +219,7 @@ def gaussian_blur_kernel_2d(sigma, width, height):
     numRows = width
     numCols = height
 
-    # Initialize empty kernely
+    # Initialize empty kernel
     kernel = np.zeros((numRows, numCols))
 
     # Populate the kernel
