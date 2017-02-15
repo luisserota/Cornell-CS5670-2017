@@ -15,11 +15,11 @@ def perform_cross_correlation_grayscale(img, kernel):
     imgR = len(img)
     imgC = len(img[0])
 
-    # print "kernelRows: " + str(kernelR)
-    # print "kernelCols: " + str(kernelC)
-    #
-    # print "oldImageRows: " + str(imgR)
-    # print "oldIMageCols: " + str(imgC)
+    print "kernelRows: " + str(kernelR)
+    print "kernelCols: " + str(kernelC)
+
+    print "oldImageRows: " + str(imgR)
+    print "oldIMageCols: " + str(imgC)
 
     # Do pre-processing, add 0's on the perimeter to account for edges
     # Add width
@@ -32,14 +32,14 @@ def perform_cross_correlation_grayscale(img, kernel):
     # Add Height
     while h > 1:
         img = np.insert(img, 0, 0, axis=0) # Add row of 0's on top
-        img = np.insert(img, len(img), 0, axis=0) # Add row of 0's on bototm
+        img = np.insert(img, len(img), 0, axis=0) # Add row of 0's on bottom
         h = h - 2
 
     # New image
     newImg = np.copy(img)
 
-    # print "newImageRows: " + str(len(newImg))
-    # print "newImageCols: " + str(len(newImg[len(newImg)-1]))
+    print "newImageRows: " + str(len(newImg))
+    print "newImageCols: " + str(len(newImg[len(newImg)-1]))
 
     # Perform correlation on pre-processed 2D aray
     # Itereate over 2D array within the boundaries before the added 0's
@@ -49,11 +49,11 @@ def perform_cross_correlation_grayscale(img, kernel):
     # print "i: " + str(int(kernelR/2)) + " - " + str(len(newImg) - int(kernelR/2))
     # print "j: " + str(int(kernelC/2)) + " - " + str(len(newImg[0]) - int(kernelC/2))
 
-    print "kernel"
-    print kernel
+    # print "kernel"
+    # print kernel
 
-    print "newImage Before"
-    print newImg
+    # print "newImage Before"
+    # print newImg
 
     for i in range(int(kernelR/2), len(newImg) - int(kernelR/2)):
         for j in range(int(kernelC/2), len(newImg[0]) - int(kernelC/2)):
@@ -78,8 +78,8 @@ def perform_cross_correlation_grayscale(img, kernel):
         newImg = np.delete(newImg, len(newImg)-1, 0)# remove row from bottom
         h = h - 2
 
-    print "newImage after"
-    print newImg
+    # print "newImage after"
+    # print newImg
 
     print "\n\n"
 
@@ -120,8 +120,8 @@ def perform_cross_correlation_RGB(img, kernel):
             for ki in range(0, kernelR):
                 for kj in range(0, kernelC):
                     sumOne += kernel[ki][kj][0] * newImg[i + ki - int(kernelR/2)][j + kj - int(kernelC/2)][0]
-                    sumTwo += kernel[ki][kj][1] * newImgimg[i + ki - int(kernelR/2)][j + kj - int(kernelC/2)][1]
-                    sumThree += kernel[ki][kj][2] * newIimg[i + ki - int(kernelR/2)][j + kj - int(kernelC/2)][2]
+                    sumTwo += kernel[ki][kj][1] * newImg[i + ki - int(kernelR/2)][j + kj - int(kernelC/2)][1]
+                    sumThree += kernel[ki][kj][2] * newI[i + ki - int(kernelR/2)][j + kj - int(kernelC/2)][2]
             newImg[i][j][0] = sumOne
             newImg[i][j][1] = sumTwo
             newImg[i][j][2] = sumThree
