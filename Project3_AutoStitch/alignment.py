@@ -269,7 +269,7 @@ def leastSquaresFit(f1, f2, matches, m, inlier_indices):
             (b_x, b_y) = f2[matches[inlier_indices[i]].trainIdx].pt
 
             u = u + (b_x - a_x)
-            v = v + (b_y - a_y) 
+            v = v + (b_y - a_y)
 
             #TODO-BLOCK-END
             #END TODO
@@ -285,7 +285,13 @@ def leastSquaresFit(f1, f2, matches, m, inlier_indices):
         #Compute a homography M using all inliers.
         #This should call computeHomography.
         #TODO-BLOCK-BEGIN
-        raise Exception("TODO in alignment.py not implemented")
+
+        inlier_matches = []
+        for i in inlier_indices:
+            inlier_matches.append(matches[i])
+
+        M = computeHomography(f1, f2, inlier_matches)
+        
         #TODO-BLOCK-END
         #END TODO
 

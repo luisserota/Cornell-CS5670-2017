@@ -29,7 +29,9 @@ def imageBoundingBox(img, M):
     """
     #TODO 8
     #TODO-BLOCK-BEGIN
-    raise Exception("TODO in blend.py not implemented")
+
+
+
     #TODO-BLOCK-END
     return int(minX), int(minY), int(maxX), int(maxY)
 
@@ -91,7 +93,13 @@ def getAccSize(ipv):
         # BEGIN TODO 9
         # add some code here to update minX, ..., maxY
         #TODO-BLOCK-BEGIN
-        raise Exception("TODO in blend.py not implemented")
+
+        minXBB, minYBB, maxXBB, maxYBB = imageBoundingBox(img, M)
+        minX = np.minimum(minX, minXBB)
+        maxX = np.minimum(maxX, maxXBB)
+        minY = np.minimum(minY, minYBB)
+        maxY = np.minimum(maxY, maxYBB)
+
         #TODO-BLOCK-END
         # END TODO
 
@@ -196,4 +204,3 @@ def blendImages(ipv, blendWidth, is360=False, A_out=None):
     )
 
     return croppedImage
-
