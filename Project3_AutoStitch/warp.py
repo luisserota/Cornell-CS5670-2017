@@ -74,17 +74,21 @@ def computeSphericalWarpMappings(dstShape, f, k1, k2):
     # TODO-BLOCK-BEGIN
     # raise Exception("TODO in warp.py not implemented")
 
+    xt = np.zeros((dstShape[0], dstShape[1]))
+    yt = np.zeros((dstShape[0], dstShape[1]))
+
     # Compute spherical coordinates
-    xh = np.sin(xf) * np.cos(yf)
-    yh = np.sin(yf)
-    zh = np.cos(xf) * np.cos(yf)
+    for r in range(dstShape[0]):
+        for c in range(dstShape[1]):
+            xh = np.sin(xf[r,c]) * np.cos(yf[r,c])
+            yh = np.sin(yf[r,c])
+            zh = np.cos(xf[r,c]) * np.cos(yf[r,c])
+            xh = xh/zh
+            yh = yh/zh
+            rSq = xh**2 + yh**2
+            xt[r,c] = xh * (1 + (k1 * rSq) + (k2 * math.pow(rSq, 2)))
+            yt[r,c] = yh * (1 + (k1 * rSq) + (k2 * math.pow(rSq, 2)))
 
-    xPn = xh/zh
-    yPn = yh/zh
-    rSq = math.pow(xPn, 2) + math.pow(yPn, 2)
-
-    xt = xPn * (1 + (k1 * rSq) + (k2 * math.pow(rSq, 2)))
-    yt = yPn * (1 + (k1 * rSq) + (k2 * math.pow(rSq, 2)))
 
     # TODO-BLOCK-END
     # END TODO

@@ -30,8 +30,36 @@ def imageBoundingBox(img, M):
     #TODO 8
     #TODO-BLOCK-BEGIN
 
+    # Compute homographies for corner points
+    # This allows us to not need to compute homography for whole image
+    corner1 = M.dot(np.array([ # top left
+        0.0, 0.0, 1
+    ], dtype=float).T)
+    corner2 = M.dot(np.array([ # bottom left
+        0.0, len(img), 1
+    ], dtype=float).T)
+    corner3 = M.dot(np.array([ # top right
+        len(img[0]), 0.0, 1
+    ], dtype=float).T)
+    corner4 = M.dot(np.array([ # bottom right
+        len(img[0]), len(img), 1
+    ], dtype=float).T)
 
+    # Normalize the corner
+    corner1 = [corner1[0]/corner1[2], corner1[1]/corner1[2]]
+    corner2 = [corner2[0]/corner2[2], corner2[1]/corner2[2]]
+    corner3 = [corner3[0]/corner3[2], corner3[1]/corner3[2]]
+    corner4 = [corner4[0]/corner4[2], corner4[1]/corner4[2]]
 
+    corners = [corner1, corner2, corner3, corner4]
+
+    # Find min and max values
+    sortedXs = sorted(i[0] for i in corners)
+    minX = sortedXs[1]
+    maxX = sortedXs[2]
+    sortedYs = sorted(i[1] for i in corners)
+    minY = sortedYs[1]
+    maxY = sortedYs[2]
     #TODO-BLOCK-END
     return int(minX), int(minY), int(maxX), int(maxY)
 
@@ -51,7 +79,28 @@ def accumulateBlend(img, acc, M, blendWidth):
     # BEGIN TODO 10
     # Fill in this routine
     #TODO-BLOCK-BEGIN
-    raise Exception("TODO in blend.py not implemented")
+
+    MInverse = np.linalg.inv(M)
+    minX, minY, maxX, maxY = imageBoundingBox(img, M)
+
+    for i in range(minY, maxY):
+        for j in range(minX,maxX):
+            newPt = MInverse.dot(np.array([
+                c, r, 1.0
+            ]).T)
+            newPtX = newPt[0]/float(newPt[2])
+            newPtY = newPt[1]/float(newPt[2])
+
+            # Determine the color of thew new point
+            newPtRGB = np.zeros(3)
+
+            if abs(np.round(newPtX) - newPtX) < 0.1 and abs(np.round(newPtY) - newPtY) < 0.1:
+                newPtRGB = img[int(np.rint(newPtY)), int(np.rint(newPtX))]
+
+            # Bilinear interpolation
+            else:
+                
+
     #TODO-BLOCK-END
     # END TODO
 

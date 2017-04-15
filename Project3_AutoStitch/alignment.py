@@ -43,11 +43,10 @@ def computeHomography(f1, f2, matches, A_out=None):
         #Access elements using square brackets. e.g. A[0,0]
         #TODO-BLOCK-BEGIN
 
-        for x in range(num_rows):
-            if (x % 2 == 0):
-                A[x] = [a_x, a_y, 1, 0, 0, 0, (-1 * a_x * b_x), (-1 * b_x * a_y), (-1 * b_x)]
-            else:
-                A[x] = [0, 0, 0, a_x, a_y, 1, (-1 * a_x * b_y), (-1 * a_y * b_y), (-1 * b_y)]
+        if (i % 2 == 0):
+            A[i] = [a_x, a_y, 1, 0, 0, 0, (-1 * a_x * b_x), (-1 * b_x * a_y), (-1 * b_x)]
+        else:
+            A[i] = [0, 0, 0, a_x, a_y, 1, (-1 * a_x * b_y), (-1 * a_y * b_y), (-1 * b_y)]
 
         #TODO-BLOCK-END
         #END TODO
@@ -133,7 +132,7 @@ def alignPair(f1, f2, matches, m, nRANSAC, RANSACthresh):
 
         # Determine actual match values from indexes
         m_ransac = []
-        for j in match_indices:
+        for j in m_indexes:
             m_ransac.append(matches[j])
         motion_model = np.eye(3)
 
@@ -145,11 +144,11 @@ def alignPair(f1, f2, matches, m, nRANSAC, RANSACthresh):
             xt = b_x - a_x
             yt = b_y - a_y
             # Create the translation matrix
-            motion_model = np.array(
+            motion_model = np.array([
             [1, 0, xt],
             [0, 1, yt],
             [0, 0, 1]
-            )
+            ])
         else:
             motion_model = computeHomography(f1, f2, m_ransac)
 
@@ -160,7 +159,7 @@ def alignPair(f1, f2, matches, m, nRANSAC, RANSACthresh):
             max_inliers = inliers
 
     # After finding the max inliers, determine least squares fit
-    M = leastSquaresFit(f1, f2, matches, max_inliers)
+    M = leastSquaresFit(f1, f2, matches, m, max_inliers)
 
     #TODO-BLOCK-END
     #END TODO
@@ -291,7 +290,7 @@ def leastSquaresFit(f1, f2, matches, m, inlier_indices):
             inlier_matches.append(matches[i])
 
         M = computeHomography(f1, f2, inlier_matches)
-        
+
         #TODO-BLOCK-END
         #END TODO
 
