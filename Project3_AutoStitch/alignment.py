@@ -196,7 +196,30 @@ def getInliers(f1, f2, matches, M, RANSACthresh):
         #by M, is within RANSACthresh of its match in f2.
         #If so, append i to inliers
         #TODO-BLOCK-BEGIN
-        raise Exception("TODO in alignment.py not implemented")
+
+        m1i = matches[i].queryIdx
+        m2i = matches[i].trainIdx
+
+        # Apply the inter-image transformation matrix
+        hom_result = M.dot(np.array([
+            f1[m1i].pt[0],
+            f1[m2i].pt[1],
+            1
+            ]).T)
+
+        m2 = np.array([
+            f2[m1i].pt[0],
+            f2[m2i].pt[1]
+        ])
+
+        # First match equals the normalized homography
+        m1 = hom_result[:2] / hom_result[2]
+
+        dist = np.linalg.norm(m1 - m2)
+
+        if dist <= RANSACthresh:
+            inlier_indices.append(i)
+
         #TODO-BLOCK-END
         #END TODO
 
@@ -241,7 +264,13 @@ def leastSquaresFit(f1, f2, matches, m, inlier_indices):
             #Use this loop to compute the average translation vector
             #over all inliers.
             #TODO-BLOCK-BEGIN
-            raise Exception("TODO in alignment.py not implemented")
+
+            (a_x, a_y) = f1[matches[inlier_indices[i]].queryIdx].pt
+            (b_x, b_y) = f2[matches[inlier_indices[i]].trainIdx].pt
+
+            u = u + (b_x - a_x)
+            v = v + (b_y - a_y) 
+
             #TODO-BLOCK-END
             #END TODO
 
