@@ -1,6 +1,7 @@
 import os
 import cv2
 import numpy as np
+import math
 
 def warpLocal(src, uv):
     '''
@@ -71,7 +72,20 @@ def computeSphericalWarpMappings(dstShape, f, k1, k2):
     # as output for your code. They should all have the shape
     # (img_height, img_width)
     # TODO-BLOCK-BEGIN
-    raise Exception("TODO in warp.py not implemented")
+    # raise Exception("TODO in warp.py not implemented")
+
+    # Compute spherical coordinates
+    xh = np.sin(xf) * np.cos(yf)
+    yh = np.sin(yf)
+    zh = np.cos(xf) * np.cos(yf)
+
+    xPn = xh/zh
+    yPn = yh/zh
+    rSq = math.pow(xPn, 2) + math.pow(yPn, 2)
+
+    xt = xPn * (1 + (k1 * rSq) + (k2 * math.pow(rSq, 2)))
+    yt = yPn * (1 + (k1 * rSq) + (k2 * math.pow(rSq, 2)))
+
     # TODO-BLOCK-END
     # END TODO
     # Convert back to regular pixel coordinates
@@ -103,5 +117,3 @@ def warpSpherical(image, focalLength, k1=-0.21, k2=0.26):
 
     # warp image based on backwards coordinates
     return warpLocal(image, uv)
-
-

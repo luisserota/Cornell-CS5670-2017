@@ -42,7 +42,13 @@ def computeHomography(f1, f2, matches, A_out=None):
         #Fill in the matrix A in this loop.
         #Access elements using square brackets. e.g. A[0,0]
         #TODO-BLOCK-BEGIN
-        raise Exception("TODO in alignment.py not implemented")
+
+        for x in range(num_rows):
+            if (x % 2 == 0):
+                A[x] = [a_x, a_y, 1, 0, 0, 0, (-1 * a_x * b_x), (-1 * b_x * a_y), (-1 * b_x)]
+            else:
+                A[x] = [0, 0, 0, a_x, a_y, 1, (-1 * a_x * b_y), (-1 * a_y * b_y), (-1 * b_y)]
+
         #TODO-BLOCK-END
         #END TODO
 
@@ -62,7 +68,9 @@ def computeHomography(f1, f2, matches, A_out=None):
     #BEGIN TODO 3
     #Fill the homography H with the appropriate elements of the SVD
     #TODO-BLOCK-BEGIN
-    raise Exception("TODO in alignment.py not implemented")
+
+    H = Vt[8].reshape((3,3))
+
     #TODO-BLOCK-END
     #END TODO
 
@@ -103,7 +111,57 @@ def alignPair(f1, f2, matches, m, nRANSAC, RANSACthresh):
     #This function should also call get_inliers and, at the end,
     #least_squares_fit.
     #TODO-BLOCK-BEGIN
-    raise Exception("TODO in alignment.py not implemented")
+
+    max_inliers = []
+
+    # Determine type of motion model
+    if m == eTranslate:
+        n_matches = 1
+    else:
+        n_matches = 4
+
+    # Perform RANSAC
+    for i in range(nRANSAC):
+        m_indexes = []
+        # Find random indexes for matches
+        while len(m_indexes) < n_matches:
+            random = np.random.randint(0, len(matches) - 1)
+
+            # If this index is not already in found matches, add it
+            if random not in m_indexes:
+                m_indexes.append(random)
+
+        # Determine actual match values from indexes
+        m_ransac = []
+        for j in match_indices:
+            m_ransac.append(matches[j])
+        motion_model = np.eye(3)
+
+        # If motion model type is translation
+        if m == eTranslate:
+            (a_x, a_y) = f1[m_ransac[0].queryIdx].pt
+            (b_x, b_y) = f2[m_ransac[0].trainIdx].pt
+            # Determine differences
+            xt = b_x - a_x
+            yt = b_y - a_y
+            # Create the translation matrix
+            motion_model = np.array(
+            [1, 0, xt],
+            [0, 1, yt],
+            [0, 0, 1]
+            )
+        else:
+            motion_model = computeHomography(f1, f2, m_ransac)
+
+        inliers = getInliers(f1, f2, matches, motion_model, RANSACthresh)
+
+        # If there's more inliers than in the current best, replace with new set
+        if len(inliers) > len(max_inliers):
+            max_inliers = inliers
+
+    # After finding the max inliers, determine least squares fit
+    M = leastSquaresFit(f1, f2, matches, max_inliers)
+
     #TODO-BLOCK-END
     #END TODO
     return M
@@ -206,4 +264,3 @@ def leastSquaresFit(f1, f2, matches, m, inlier_indices):
         raise Exception("Error: Invalid motion model.")
 
     return M
-
