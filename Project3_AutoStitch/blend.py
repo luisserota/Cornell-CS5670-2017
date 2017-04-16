@@ -99,7 +99,45 @@ def accumulateBlend(img, acc, M, blendWidth):
 
             # Bilinear interpolation
             else:
-                
+                int_x2 = int(newPtX + 1)
+                int_y2 = int(newPtY + 1)
+                int_x1 = int(newPtX)
+                int_y1 = int(newPtY)
+
+
+                Q11 = img[int_y1, int_x1]
+                Q12 = img[int_y1, int_x2]
+                Q21 = img[int_y2, int_x1]
+                Q22 = img[int_y2, int_x2]
+
+                #f(x,y) ~ b11*Q11 + b12*Q12 + b21*Q21 + b22*Q22
+                #find coefficients using linear system
+
+                eqn = np.array([
+                    [1, int_x1, int_y1, int_x1*int_y1],
+                    [1, int_x1, int_y2, int_x1*int_y2],
+                    [1, int_x2, int_y1, int_x2*int_y1],
+                    [1, int_x2, int_y2, int_x2*int_y2]
+                ])
+
+
+                qM = np.array([1, newPtX, newPtY, newPtY*newPtX])
+
+                eqn = np.transpose(np.linalg.inv(eqn))
+                coefficients = eqn.dot(qM)
+
+                for i in range(3):
+                    newPtRGB[i] = coefficients[0]*Q11 + coefficients[1]*Q12 + coefficients[2]*Q21 + coefficients[3]*Q22
+
+            # http://dcyoung.weebly.com/panoramas-alignment-stitching-blending.html
+            if j-minX < blendWidth:
+                weight = float((j-minX) / blendWidth)
+                acc[i,j,0:3] = (1-weight)*acc[i,j,0:3]*acc[i,j,3] + weight*newPtRGB
+                acc[i,j,3] = 1.0
+            else:
+                acc[i,j,0:3] = newPtRGB
+                acc[i,j,3] = 1.0
+
 
     #TODO-BLOCK-END
     # END TODO
@@ -240,7 +278,10 @@ def blendImages(ipv, blendWidth, is360=False, A_out=None):
     # Note: warpPerspective does forward mapping which means A is an affine
     # transform that maps accumulator coordinates to final panorama coordinates
     #TODO-BLOCK-BEGIN
-    raise Exception("TODO in blend.py not implemented")
+
+    if is360 is True:
+        A = computeDrift(x_init, y_init, x_final, y_final, width)
+
     #TODO-BLOCK-END
     # END TODO
 
