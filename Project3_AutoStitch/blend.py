@@ -17,7 +17,6 @@ def imageBoundingBox(img, M):
        This is a useful helper function that you might choose to implement
        that takes an image, and a transform, and computes the bounding box
        of the transformed image.
-
        INPUT:
          img: image to get the bounding box of
          M: the transformation to apply to the img
@@ -86,58 +85,81 @@ def accumulateBlend(img, acc, M, blendWidth):
     for i in range(minY, maxY):
         for j in range(minX,maxX):
             newPt = MInverse.dot(np.array([
-                c, r, 1.0
+                j, i, 1.0
             ]).T)
-            newPtX = newPt[0]/float(newPt[2])
-            newPtY = newPt[1]/float(newPt[2])
 
-            # Determine the color of thew new point
+            newPtX = float(newPt[0])/float(newPt[2])
+            newPtY = float(newPt[1])/float(newPt[2])
+
+            # Determine the color of the new point
             newPtRGB = np.zeros(3)
 
             if abs(np.round(newPtX) - newPtX) < 0.1 and abs(np.round(newPtY) - newPtY) < 0.1:
                 newPtRGB = img[int(np.rint(newPtY)), int(np.rint(newPtX))]
 
-            # Bilinear interpolation
+            # Bilinear interpolation:
             else:
-                int_x2 = int(newPtX + 1)
-                int_y2 = int(newPtY + 1)
-                int_x1 = int(newPtX)
-                int_y1 = int(newPtY)
+                int_x1 = int(np.floor(newPtX))
+                int_y1 = int(np.floor(newPtY))
+                int_x2 = int(np.floor(newPtX + 1))
+                int_y2 = int(np.floor(newPtY + 1))
 
+                if int_x1 < 0:
+                    int_x1 = 0
+                elif int_x1 >= img.shape[1]:
+                    int_x1 = img.shape[1] - 1
+
+                if int_x2 < 0:
+                    int_x2 = 0
+                elif int_x2 >= img.shape[1]:
+                    int_x2 = img.shape[1] - 1
+
+                if int_y1 <0:
+                    int_y1 = 0
+                elif int_y1 >= img.shape[0]:
+                    int_y1 = img.shape[0] - 1
+
+                if int_y2 <0:
+                    int_y2 = 0
+                elif int_y2 >= img.shape[0]:
+                    int_y2 = img.shape[0] - 1
 
                 Q11 = img[int_y1, int_x1]
                 Q12 = img[int_y1, int_x2]
                 Q21 = img[int_y2, int_x1]
                 Q22 = img[int_y2, int_x2]
 
-                #f(x,y) ~ b11*Q11 + b12*Q12 + b21*Q21 + b22*Q22
-                #find coefficients using linear system
+                if newPtX == int_x1 or newPtX == int_x2:
+                    fXY1 = Q21
+                    fXY2 = Q22
 
-                eqn = np.array([
-                    [1, int_x1, int_y1, int_x1*int_y1],
-                    [1, int_x1, int_y2, int_x1*int_y2],
-                    [1, int_x2, int_y1, int_x2*int_y1],
-                    [1, int_x2, int_y2, int_x2*int_y2]
-                ])
+                else:
+                    fXY1 = ((int_x2 - newPtX) / (int_x2 - int_x1)).dot(Q11) + ((newPtX - int_x1) / (int_x2 - int_x1)).dot(Q21)
+                    fXY2 = ((int_x2 - newPtX) / (int_x2 - int_x1)).dot(Q12) + ((newPtX - int_x1) / (int_x2 - int_x1)).dot(Q22)
 
+                if newPtY == int_y1 or newPtY == int_y2:
+                    newPtRGB = fXY1
 
-                qM = np.array([1, newPtX, newPtY, newPtY*newPtX])
+                else:
+                    newPtRGB = ((int_y2 - newPtY) / (int_y2 - int_y1)).dot(fXY1) + ((newPtY - int_y1) / (int_y2 - int_y1)).dot(fXY2)
 
-                eqn = np.transpose(np.linalg.inv(eqn))
-                coefficients = eqn.dot(qM)
+            #Feather blending
+            weight = 1.0
 
-                for i in range(3):
-                    newPtRGB[i] = coefficients[0]*Q11 + coefficients[1]*Q12 + coefficients[2]*Q21 + coefficients[3]*Q22
+            if newPtX < blendWidth:
+                weight = float(newPtX / blendWidth)
+            elif newPtX > (len(img[0]) - blendWidth):
+                weight = float((len(img[0]) - newPtX) / blendWidth)
 
-            # http://dcyoung.weebly.com/panoramas-alignment-stitching-blending.html
-            if j-minX < blendWidth:
-                weight = float((j-minX) / blendWidth)
-                acc[i,j,0:3] = (1-weight)*acc[i,j,0:3]*acc[i,j,3] + weight*newPtRGB
-                acc[i,j,3] = 1.0
-            else:
-                acc[i,j,0:3] = newPtRGB
-                acc[i,j,3] = 1.0
+            if newPtY < blendWidth:
+                weight = float(newPtY / blendWidth)
+            elif newPtY > (len(img) - blendWidth):
+                weight = float((len(img) - newPtY) / blendWidth)
 
+            acc[i, j, 0] += float((weight * newPtRGB[0]))
+            acc[i, j, 1] += float((weight * newPtRGB[1]))
+            acc[i, j, 2] += float((weight * newPtRGB[2]))
+            acc[i, j, 3] += float(weight)
 
     #TODO-BLOCK-END
     # END TODO
@@ -152,8 +174,20 @@ def normalizeBlend(acc):
          img: image with r,g,b values of acc normalized
     """
     # BEGIN TODO 11
-    # fill in this routine..
+    img = np.zeros((acc.shape[0], acc.shape[1], 3))
     #TODO-BLOCK-BEGIN
+
+    for i in range(len(acc)):
+        for j in range(len(acc[0])):
+            if acc[i, j, 3] > 0:
+                img[i, j, 0] /= acc[i, j, 3]
+                img[i, j, 1] /= acc[i, j, 3]
+                img[i, j, 2] /= acc[i, j, 3]
+            else:
+                img[i, j, 0] = acc[i, j, 0]
+                img[i, j, 1] = acc[i, j, 1]
+                img[i, j, 2] = acc[i, j, 2]
+
     raise Exception("TODO in blend.py not implemented")
     #TODO-BLOCK-END
     # END TODO
@@ -279,9 +313,11 @@ def blendImages(ipv, blendWidth, is360=False, A_out=None):
     # transform that maps accumulator coordinates to final panorama coordinates
     #TODO-BLOCK-BEGIN
 
-    if is360 is True:
-        A = computeDrift(x_init, y_init, x_final, y_final, width)
+    if is360 == True:
+        A[0, 2] = width/2
+        A[1, 0] = (-1) * ((y_init - y_final) / outputWidth)
 
+    raise Exception("TODO in blend.py not implemented")
     #TODO-BLOCK-END
     # END TODO
 
