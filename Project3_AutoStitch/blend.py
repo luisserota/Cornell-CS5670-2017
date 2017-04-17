@@ -83,7 +83,7 @@ def accumulateBlend(img, acc, M, blendWidth):
     minX, minY, maxX, maxY = imageBoundingBox(img, M)
 
     for i in range(minY, maxY):
-        for j in range(minX,maxX):
+        for j in range(minX, maxX):
             newPt = MInverse.dot(np.array([
                 j, i, 1.0
             ]).T)
@@ -188,7 +188,6 @@ def normalizeBlend(acc):
                 img[i, j, 1] = acc[i, j, 1]
                 img[i, j, 2] = acc[i, j, 2]
 
-    raise Exception("TODO in blend.py not implemented")
     #TODO-BLOCK-END
     # END TODO
     return img
@@ -317,7 +316,6 @@ def blendImages(ipv, blendWidth, is360=False, A_out=None):
         A[0, 2] = width/2
         A[1, 0] = (-1) * ((y_init - y_final) / outputWidth)
 
-    raise Exception("TODO in blend.py not implemented")
     #TODO-BLOCK-END
     # END TODO
 

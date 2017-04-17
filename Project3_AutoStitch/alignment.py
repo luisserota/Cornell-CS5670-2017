@@ -272,9 +272,9 @@ def leastSquaresFit(f1, f2, matches, m, inlier_indices):
 
             #TODO-BLOCK-END
             #END TODO
-
-        u /= len(inlier_indices)
-        v /= len(inlier_indices)
+        if len(inlier_indices) > 0:
+            u /= len(inlier_indices)
+            v /= len(inlier_indices)
 
         M[0,2] = u
         M[1,2] = v
