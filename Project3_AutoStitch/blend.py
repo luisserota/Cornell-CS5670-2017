@@ -31,24 +31,24 @@ def imageBoundingBox(img, M):
 
     # Compute homographies for corner points
     # This allows us to not need to compute homography for whole image
-    corner1 = M.dot(np.array([ # top left
+    corner1 = np.dot(M, np.array([ # top left
         0.0, 0.0, 1
     ], dtype=float).T)
-    corner2 = M.dot(np.array([ # bottom left
+    corner2 = np.dot(M, np.array([ # bottom left
         0.0, len(img), 1
     ], dtype=float).T)
-    corner3 = M.dot(np.array([ # top right
+    corner3 = np.dot(M, np.array([ # top right
         len(img[0]), 0.0, 1
     ], dtype=float).T)
-    corner4 = M.dot(np.array([ # bottom right
+    corner4 = np.dot(M, np.array([ # bottom right
         len(img[0]), len(img), 1
     ], dtype=float).T)
 
     # Normalize the corner
-    corner1 = [corner1[0]/corner1[2], corner1[1]/corner1[2]]
-    corner2 = [corner2[0]/corner2[2], corner2[1]/corner2[2]]
-    corner3 = [corner3[0]/corner3[2], corner3[1]/corner3[2]]
-    corner4 = [corner4[0]/corner4[2], corner4[1]/corner4[2]]
+    corner1 = [np.divide(corner1[0],corner1[2]), np.divide(corner1[1],corner1[2])]
+    corner2 = [np.divide(corner2[0],corner2[2]), np.divide(corner2[1],corner2[2])]
+    corner3 = [np.divide(corner3[0],corner3[2]), np.divide(corner3[1],corner3[2])]
+    corner4 = [np.divide(corner4[0],corner4[2]), np.divide(corner4[1],corner4[2])]
 
     corners = [corner1, corner2, corner3, corner4]
 
@@ -84,86 +84,103 @@ def accumulateBlend(img, acc, M, blendWidth):
 
     for i in range(minY, maxY):
         for j in range(minX, maxX):
-            newPt = MInverse.dot(np.array([
-                j, i, 1.0
-            ]).T)
+            if j < 0 or i < 0 or j >= acc.shape[1] or i >= acc.shape[0]:
+            	continue
 
+            newPt = np.dot(MInverse, np.array([j, i, 1.0]).T)
             newPtX = float(newPt[0])/float(newPt[2])
             newPtY = float(newPt[1])/float(newPt[2])
 
-            # Determine the color of the new point
-            newPtRGB = np.zeros(3)
-
-            if abs(np.round(newPtX) - newPtX) < 0.1 and abs(np.round(newPtY) - newPtY) < 0.1:
-                newPtRGB = img[int(np.rint(newPtY)), int(np.rint(newPtX))]
+            if newPtX < 0.0 or newPtY < 0.0 or newPtX > img.shape[1] or newPtY > img.shape[0]:
+	    		continue
 
             # Bilinear interpolation:
+            int_x1 = int(np.floor(newPtX))
+            int_y1 = int(np.floor(newPtY))
+            int_x2 = int(np.floor(newPtX + 1))
+            int_y2 = int(np.floor(newPtY + 1))
+
+            if int_x1 < 0:
+                int_x1 = 0
+            elif int_x1 >= img.shape[1]:
+                int_x1 = img.shape[1] - 1
+
+            if int_x2 < 0:
+                int_x2 = 0
+            elif int_x2 >= img.shape[1]:
+                int_x2 = img.shape[1] - 1
+
+            if int_y1 < 0:
+                int_y1 = 0
+            elif int_y1 >= img.shape[0]:
+                int_y1 = img.shape[0] - 1
+
+            if int_y2 < 0:
+                int_y2 = 0
+            elif int_y2 >= img.shape[0]:
+                int_y2 = img.shape[0] - 1
+
+
+            if all(img[int_y2, int_x2, 0:3] == 0):
+            	continue
+
+            if all(img[int_y1, int_x2, 0:3] == 0):
+            	continue
+
+            if all(img[int_y2, int_x1, 0:3] == 0):
+            	continue
+
+            if all(img[int_y1, int_x1, 0:3] == 0):
+            	continue
+
+
+            Q11 = img[int_y1, int_x1]
+            Q12 = img[int_y2, int_x1]
+            Q21 = img[int_y1, int_x2]
+            Q22 = img[int_y2, int_x2]
+
+            if newPtX == int_x1 or newPtX == int_x2:
+                fXY1 = Q21
+                fXY2 = Q22
+
             else:
-                int_x1 = int(np.floor(newPtX))
-                int_y1 = int(np.floor(newPtY))
-                int_x2 = int(np.floor(newPtX + 1))
-                int_y2 = int(np.floor(newPtY + 1))
+                fXY1 = np.dot((np.divide((int_x2 - newPtX),(int_x2 - int_x1))),(Q11)) + np.dot((np.divide((newPtX - int_x1),(int_x2 - int_x1))),(Q21))
+                fXY2 = np.dot((np.divide((int_x2 - newPtX),(int_x2 - int_x1))),(Q12)) + np.dot((np.divide((newPtX - int_x1),(int_x2 - int_x1))),(Q22))
 
-                if int_x1 < 0:
-                    int_x1 = 0
-                elif int_x1 >= img.shape[1]:
-                    int_x1 = img.shape[1] - 1
+            if newPtY == int_y1 or newPtY == int_y2:
+                newPtRGB = fXY1
 
-                if int_x2 < 0:
-                    int_x2 = 0
-                elif int_x2 >= img.shape[1]:
-                    int_x2 = img.shape[1] - 1
-
-                if int_y1 <0:
-                    int_y1 = 0
-                elif int_y1 >= img.shape[0]:
-                    int_y1 = img.shape[0] - 1
-
-                if int_y2 <0:
-                    int_y2 = 0
-                elif int_y2 >= img.shape[0]:
-                    int_y2 = img.shape[0] - 1
-
-                Q11 = img[int_y1, int_x1]
-                Q12 = img[int_y1, int_x2]
-                Q21 = img[int_y2, int_x1]
-                Q22 = img[int_y2, int_x2]
-
-                if newPtX == int_x1 or newPtX == int_x2:
-                    fXY1 = Q21
-                    fXY2 = Q22
-
-                else:
-                    fXY1 = ((int_x2 - newPtX) / (int_x2 - int_x1)).dot(Q11) + ((newPtX - int_x1) / (int_x2 - int_x1)).dot(Q21)
-                    fXY2 = ((int_x2 - newPtX) / (int_x2 - int_x1)).dot(Q12) + ((newPtX - int_x1) / (int_x2 - int_x1)).dot(Q22)
-
-                if newPtY == int_y1 or newPtY == int_y2:
-                    newPtRGB = fXY1
-
-                else:
-                    newPtRGB = ((int_y2 - newPtY) / (int_y2 - int_y1)).dot(fXY1) + ((newPtY - int_y1) / (int_y2 - int_y1)).dot(fXY2)
+            else:
+                newPtRGB = np.dot((np.divide((int_y2 - newPtY),(int_y2 - int_y1))),(fXY1)) + np.dot((np.divide((newPtY - int_y1),(int_y2 - int_y1))),(fXY2))
 
             #Feather blending
-            weight = 1.0
+            blendValues = []
+            for a in range(blendWidth):
+            	x = a / float(blendWidth)
+            	blendValues.append(x)
 
-            if newPtX < blendWidth:
-                weight = float(newPtX / blendWidth)
-            elif newPtX > (len(img[0]) - blendWidth):
-                weight = float((len(img[0]) - newPtX) / blendWidth)
+            RGBacc = acc[i, j, 0:3]
+            if all(RGBacc == np.array([0,0,0])):
+            	acc[i, j, 0:3] = newPtRGB[0:3]
+            	acc[i, j, 3] = 1.0
 
-            if newPtY < blendWidth:
-                weight = float(newPtY / blendWidth)
-            elif newPtY > (len(img) - blendWidth):
-                weight = float((len(img) - newPtY) / blendWidth)
+            elif not all(newPtRGB[0:3] == np.array([0,0,0])):
+            	if ((maxX - j) <= blendWidth):
+            		weight = 1 - float(blendValues[blendWidth - (maxX - j)])
+            		acc[i, j, 0:3] = (1 - weight) * acc[i,j,3] * RGBacc + weight * newPtRGB[0:3]
+            		acc[i, j, 3] = weight + (1 - weight) * acc[i,j,3]
 
-            acc[i, j, 0] += float((weight * newPtRGB[0]))
-            acc[i, j, 1] += float((weight * newPtRGB[1]))
-            acc[i, j, 2] += float((weight * newPtRGB[2]))
-            acc[i, j, 3] += float(weight)
+            	elif ((j - minX) < blendWidth):
+            		weight = float(blendValues[j-minX])
+            		acc[i, j, 0:3] = (1 - weight) * acc[i, j, 3] * acc[i, j, 0:3] + weight * newPtRGB[0:3]
+            		acc[i, j, 3] = weight + (1-weight) * acc[i, j , 3]
+
+            	else:
+            		acc[i, j, 0:3] = newPtRGB[0:3]
+            		acc[i, j, 3] = 1.0
 
     #TODO-BLOCK-END
     # END TODO
-
 
 def normalizeBlend(acc):
     """
@@ -174,24 +191,24 @@ def normalizeBlend(acc):
          img: image with r,g,b values of acc normalized
     """
     # BEGIN TODO 11
-    img = np.zeros((acc.shape[0], acc.shape[1], 3))
+    img = np.zeros((acc.shape[0], acc.shape[1], 3), dtype=np.uint8)
     #TODO-BLOCK-BEGIN
 
     for i in range(len(acc)):
         for j in range(len(acc[0])):
             if acc[i, j, 3] > 0:
-                img[i, j, 0] /= acc[i, j, 3]
-                img[i, j, 1] /= acc[i, j, 3]
-                img[i, j, 2] /= acc[i, j, 3]
+                img[i, j, 0] = int(acc[i,j,0]/acc[i, j, 3])
+                img[i, j, 1] = int(acc[i,j,1]/acc[i, j, 3])
+                img[i, j, 2] = int(acc[i,j,2]/acc[i, j, 3])
             else:
-                img[i, j, 0] = acc[i, j, 0]
-                img[i, j, 1] = acc[i, j, 1]
-                img[i, j, 2] = acc[i, j, 2]
+                img[i, j, 0] = int(acc[i, j, 0])
+                img[i, j, 1] = int(acc[i, j, 1])
+                img[i, j, 2] = int(acc[i, j, 2])
 
     #TODO-BLOCK-END
     # END TODO
-    return img
 
+    return img
 
 def getAccSize(ipv):
     # Compute bounding box for the mosaic
@@ -216,9 +233,9 @@ def getAccSize(ipv):
 
         minXBB, minYBB, maxXBB, maxYBB = imageBoundingBox(img, M)
         minX = np.minimum(minX, minXBB)
-        maxX = np.minimum(maxX, maxXBB)
+        maxX = np.maximum(maxX, maxXBB)
         minY = np.minimum(minY, minYBB)
-        maxY = np.minimum(maxY, maxYBB)
+        maxY = np.maximum(maxY, maxYBB)
 
         #TODO-BLOCK-END
         # END TODO
@@ -313,8 +330,7 @@ def blendImages(ipv, blendWidth, is360=False, A_out=None):
     #TODO-BLOCK-BEGIN
 
     if is360 == True:
-        A[0, 2] = width/2
-        A[1, 0] = (-1) * ((y_init - y_final) / outputWidth)
+        A = computeDrift(x_init, y_init, x_final, y_final, width)
 
     #TODO-BLOCK-END
     # END TODO

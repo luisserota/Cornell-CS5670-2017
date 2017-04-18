@@ -43,11 +43,24 @@ def computeHomography(f1, f2, matches, A_out=None):
         #Access elements using square brackets. e.g. A[0,0]
         #TODO-BLOCK-BEGIN
 
-        if (i % 2 == 0):
-            A[i] = [a_x, a_y, 1, 0, 0, 0, (-1 * a_x * b_x), (-1 * b_x * a_y), (-1 * b_x)]
-        else:
-            A[i] = [0, 0, 0, a_x, a_y, 1, (-1 * a_x * b_y), (-1 * a_y * b_y), (-1 * b_y)]
-
+        A[2*i,0]=a_x
+        A[2*i,1]=a_y
+        A[2*i,2]=1
+        A[2*i,3]=0
+        A[2*i,4]=0
+        A[2*i,5]=0
+        A[2*i,6]=-b_x*a_x
+        A[2*i,7]=-b_x*a_y
+        A[2*i,8]=-b_x
+        A[2*i+1,0]=0
+        A[2*i+1,1]=0
+        A[2*i+1,2]=0
+        A[2*i+1,3]=a_x
+        A[2*i+1,4]=a_y
+        A[2*i+1,5]=1
+        A[2*i+1,6]=-b_y*a_x
+        A[2*i+1,7]=-b_y*a_y
+        A[2*i+1,8]=-b_y
         #TODO-BLOCK-END
         #END TODO
 
@@ -125,8 +138,6 @@ def alignPair(f1, f2, matches, m, nRANSAC, RANSACthresh):
         # Find random indexes for matches
         while len(m_indexes) < n_matches:
             random = np.random.randint(0, len(matches) - 1)
-
-            # If this index is not already in found matches, add it
             if random not in m_indexes:
                 m_indexes.append(random)
 
@@ -134,7 +145,7 @@ def alignPair(f1, f2, matches, m, nRANSAC, RANSACthresh):
         m_ransac = []
         for j in m_indexes:
             m_ransac.append(matches[j])
-        motion_model = np.eye(3)
+
 
         # If motion model type is translation
         if m == eTranslate:
@@ -144,12 +155,11 @@ def alignPair(f1, f2, matches, m, nRANSAC, RANSACthresh):
             xt = b_x - a_x
             yt = b_y - a_y
             # Create the translation matrix
-            motion_model = np.array([
-            [1, 0, xt],
-            [0, 1, yt],
-            [0, 0, 1]
-            ])
-        else:
+            motion_model = np.eye(3)
+            motion_model[0, 2] = xt
+            motion_model[1, 2] = yt
+
+        elif m == eHomography:
             motion_model = computeHomography(f1, f2, m_ransac)
 
         inliers = getInliers(f1, f2, matches, motion_model, RANSACthresh)
@@ -196,27 +206,25 @@ def getInliers(f1, f2, matches, M, RANSACthresh):
         #If so, append i to inliers
         #TODO-BLOCK-BEGIN
 
-        m1i = matches[i].queryIdx
-        m2i = matches[i].trainIdx
+        m1i = np.array(f1[matches[i].queryIdx].pt)
+        m1i = np.append(m1i,[1])
+        m1i = m1i.reshape((3,1))
 
-        # Apply the inter-image transformation matrix
-        hom_result = M.dot(np.array([
-            f1[m1i].pt[0],
-            f1[m2i].pt[1],
-            1
-            ]).T)
 
-        m2 = np.array([
-            f2[m1i].pt[0],
-            f2[m2i].pt[1]
-        ])
+        m2i = np.array(f2[matches[i].trainIdx].pt)
 
-        # First match equals the normalized homography
-        m1 = hom_result[:2] / hom_result[2]
+        hom_result = M.dot(m1i)
 
-        dist = np.linalg.norm(m1 - m2)
 
-        if dist <= RANSACthresh:
+        hom_result[0] = hom_result[0] / hom_result[2]
+        hom_result[1] = hom_result[1] / hom_result[2]
+
+        distx = m2i[0] - hom_result[0]
+        disty = m2i[1] - hom_result[1]
+
+        distance_eucd= math.sqrt(math.pow(distx,2)+math.pow(disty,2))
+
+        if distance_eucd<=RANSACthresh:
             inlier_indices.append(i)
 
         #TODO-BLOCK-END
@@ -272,10 +280,8 @@ def leastSquaresFit(f1, f2, matches, m, inlier_indices):
 
             #TODO-BLOCK-END
             #END TODO
-        if len(inlier_indices) > 0:
-            u /= len(inlier_indices)
-            v /= len(inlier_indices)
-
+        u /= len(inlier_indices)
+        v /= len(inlier_indices)
         M[0,2] = u
         M[1,2] = v
 
